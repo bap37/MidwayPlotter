@@ -59,7 +59,7 @@ for n,l in enumerate(FILENAME): #Using n as an integer to track if we've got one
     except FileNotFoundError or NameError:
         print('Could not find the FITRES you specified!')
         print("You were pointing to: ", FILENAME)
-        sys.stdout.flush()
+        sys.stdout.flush() # "dad! dad! look what got caught in the snare!" "good work, timmy, its AttributeError for dinner tonight" -Ross
         quit() #Quits if one or more files is missing
     if n == 0: #There's probably a cleaner way to do this, but this forces df1 to always be the first file loaded
         df1 = pd.read_csv(l, header=None, skiprows=StartRow1,names=Names1, delim_whitespace=True, skip_blank_lines=True, error_bad_lines=False, comment='#')
@@ -114,7 +114,7 @@ elif len(BOUNDS) != 5:  #Check for custom bounds
     bins = np.arange(boundsdic[0][0], boundsdic[0][1], boundsdic[0][2])  #Then set min, max, binsize         
 else:                                           
     print('Please give a valid bounds configuration! You can use -h to find out more!') 
-    print('You gave me', BOUNDS)                   
+    print('You gave me', BOUNDS) # "oh the sweet turgid flesh of access discrepancy" - Ross                   
     print('Quitting now...')                                    
     quit()    #Quit if bounds are poorly defined.   
 
