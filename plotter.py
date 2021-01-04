@@ -18,12 +18,14 @@ parser.add_argument('@@BOUNDS', default='loose', help=
 """loose (default): bounds are maximum and minimum values of specified parameter. \n 
 Custom: Give a set of numbers, colon delimited. An example is min:max:binsize \n
 Please note, if you are doing a two dimensional plot, you need to specify both x and y sets in order. The binsize will not be used. """, nargs = '+') 
+parser.add_argument('@@SAVE', default='None', help=
+"""File format to save images as. Default does not save images.""")
 
 args = parser.parse_args()
 VARIABLE = args.VARIABLE
 FILENAME = args.FITRES
 BOUNDS = args.BOUNDS
-
+FORMAT = args.SAVE
 
 def NAndR(filename):                                                                                                                                                                    
     """Takes in a FITRES file and outputs the variable names and startline for the data                                                                                                                                                                                                                                                                                        
@@ -154,3 +156,5 @@ for n, q in enumerate(list(plotdic)): #n keeps track of what cycle we're on, whi
         plt.legend()   
 
 plt.show()
+if SAVE !="None":
+    plt.savefig(VARIABLE+"."+FORMAT, bbox_inches="tight", format=FORMAT)
