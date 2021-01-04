@@ -19,7 +19,7 @@ parser.add_argument('@@BOUNDS', default='loose', help=
 Custom: Give a set of numbers, colon delimited. An example is min:max:binsize \n
 Please note, if you are doing a two dimensional plot, you need to specify both x and y sets in order. The binsize will not be used. """, nargs = '+') 
 parser.add_argument('@@SAVE', default='None', help=
-"""File format to save images as. Default does not save images.""")
+"""Filename to save image under. Can give a custom filepath, otherwise saves in the working directory. Default does not save images.""")
 
 args = parser.parse_args()
 VARIABLE = args.VARIABLE
@@ -130,8 +130,14 @@ for n, q in enumerate(list(plotdic)): #n keeps track of what cycle we're on, whi
         print('The upper and lower bounds are:', np.around(bins[0],4), 'and', np.around(bins[-1],4), 'respectively')
         plt.figure()
         plt.hist(df1[VAR[0]].values, bins=bins, histtype='step', lw=3, label=namedic[0], color='k') #This plots the first file
+        print("The Mean value for ", namedic[0], " is:", np.mean(df1[VAR[0]].values))                        
+        print("The Median value for ", namedic[0], " is:", np.median(df1[VAR[0]].values))            
+        print("The standard deviation value for ", namedic[0], " is:", np.std(df1[VAR[0]].values))       
         try: #Then we try to plot the second file. If it fails, then df2 is undefined, and we quit. 
             plt.hist(df2[VAR[0]].values, bins=bins, histtype='step', lw=3, label=namedic[1]) 
+            print("The Mean value for ", namedic[1], " is:", np.mean(df2[VAR[0]].values))             
+            print("The Median value for ", namedic[1], " is:", np.median(df2[VAR[0]].values))          
+            print("The standard deviation value for ", namedic[1], " is:", np.std(df2[VAR[0]].values))   
         except NameError:
             pass
         plt.xlabel(VAR[0])  #In this case, VAR = [string], so we're going to strip the list.
@@ -160,5 +166,5 @@ for n, q in enumerate(list(plotdic)): #n keeps track of what cycle we're on, whi
         plt.legend()   
 
 if FORMAT !="None":
-    plt.savefig(VARIABLE[0]+"."+FORMAT, bbox_inches="tight", format=FORMAT)
+    plt.savefig(FORMAT, bbox_inches="tight", format=FORMAT.split(".")[-1])
 plt.show()
