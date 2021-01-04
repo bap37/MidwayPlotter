@@ -70,19 +70,23 @@ for n,l in enumerate(FILENAME): #Using n as an integer to track if we've got one
         df2 = pd.read_csv(l, header=None, skiprows=StartRow1,names=Names1, delim_whitespace=True, skip_blank_lines=True, error_bad_lines=False, comment='#')
         print("Done loading!")
 
-if namedic[0] == namedic[1]:
-    print("Your filenames are identical! I'm going to go up a level and use the directory name instead of the filename.")
-    for n,l in enumerate(FILENAME): #Using n as an integer to track if we've got one or two files, and what to do.                    
-        print("Renaming... ",l.split("/")[-1], "..." )                                                  
-        try:
-            namedic[n] = l.split("/")[-2]
-            print("Renamed", l.split("/")[-1], " to ", l.split("/")[-2])
-        except IndexError:
-            print(namedic[n], " is in your current directory. I won't rename this one.")
 
-if namedic[0] == namedic[1]:
-    print("Both the filenames and their directories are identical. This means that you either gave me the same file twice, or you need to change some file or directory names. Quitting..")
-    quit()
+try:
+    if namedic[0] == namedic[1]:
+        print("Your filenames are identical! I'm going to go up a level and use the directory name instead of the filename.")
+        for n,l in enumerate(FILENAME): #Using n as an integer to track if we've got one or two files, and what to do.                    
+            print("Renaming... ",l.split("/")[-1], "..." )                                                  
+            try:
+                namedic[n] = l.split("/")[-2]
+                print("Renamed", l.split("/")[-1], " to ", l.split("/")[-2])
+            except IndexError:
+                print(namedic[n], " is in your current directory. I won't rename this one.")
+
+        if namedic[0] == namedic[1]:
+            print("Both the filenames and their directories are identical. This means that you either gave me the same file twice, or you need to change some file or directory names. Quitting..")
+            quit()
+except KeyError: 
+    pass
 
 plotdic = {} #Used for tracking what to plot. For each file, we can accept two types of input.
 #The first is a single variable, eg, c.
@@ -155,6 +159,6 @@ for n, q in enumerate(list(plotdic)): #n keeps track of what cycle we're on, whi
         plt.ylabel(VAR[1])
         plt.legend()   
 
+if FORMAT !="None":
+    plt.savefig(VARIABLE[0]+"."+FORMAT, bbox_inches="tight", format=FORMAT)
 plt.show()
-if SAVE !="None":
-    plt.savefig(VARIABLE+"."+FORMAT, bbox_inches="tight", format=FORMAT)
