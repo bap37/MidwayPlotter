@@ -9,7 +9,7 @@ An example command is as follows:
 
 @@FITRES Space separated list of up to two file paths. Needs to be a FITRES file. If the file names are the same, the program will look in the directory they're stored and change the name to that. If the directory name is the same, it will quit. The name of the file will be used for the legend in any plots.
 
-@@VARIABLE Can either be a single valid FITRES parameter, or a colon delimited combination, eg, x:y. If it is a colon delimited combination, the program will read it as x:y and plot a 2d graph of the relevant variables. 2D graphs include an average value. Otherwise, it will plot a histogram.
+@@VARIABLE Can either be a single valid FITRES parameter, or a colon delimited combination, eg, x:y. If it is a colon delimited combination, the program will read it as x:y and plot a 2d graph of the relevant variables. 2D graphs include an average value. Otherwise, it will plot a histogram. Please note that for the histogram, the counts will be normalised to the first file given. Errors are Poisson noise.
 
 @@BOUNDS default is "loose", and will use the minimum and maximum values of VARIABLE, with 30 bins. If you include two files, default will use the minimum and maximum between the two files, not just one. This can be left unspecified for the "loose" bound option.
 
