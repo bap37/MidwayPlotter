@@ -15,7 +15,7 @@ An example command is as follows:
 
 @@SAVE Provide a filename or custom filepath to save the output to. This can be left unspecified - by default it will not save your plot.
 
-@@DIFF Currently disabled. A boolean value. If True, it will show the difference in the given variable for the same CID. Currently under construction. This can be left unspecified and will default to False.
+@@DIFF A boolean value. If True, it will show the difference in the given y variable for the same CID. This can be left unspecified and will default to False.
 
 Can also be implemented as a space delimited list of colon entries formatted as min:max:binsize. 
 For a histogram, "min:max:binsize" will suffice. 
