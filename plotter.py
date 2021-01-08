@@ -69,7 +69,7 @@ if (len(BOUNDS) != 5):
 namedic = {} #Will be used for tracking labels in the plot
 
 for n,l in enumerate(FILENAME): #Using n as an integer to track if we've got one or two files, and what to do.
-    print("Loading ",l.split("/")[-1], "...")
+    print("Loading ",l.split("/")[-1], "...") #Inform that we're loading the first file.
     namedic[n] = l.split("/")[-1] #Here we split on /, then save the last entry of each filepath to a dictionary. This last entry is always the filename, which will be used for labels.
     try:
         Names1, StartRow1 = NAndR(l) #Get info on where to start reading the file
@@ -87,24 +87,23 @@ for n,l in enumerate(FILENAME): #Using n as an integer to track if we've got one
 
 if DIFF == True: #Thank you to Charlie for this part to ensure that join has only shared CIDs in it! 
     try:
-        join = df1.join(df2.set_index('CID'), on='CID', how='inner', lsuffix='_df1', rsuffix='_df2')
+        join = df1.join(df2.set_index('CID'), on='CID', how='inner', lsuffix='_df1', rsuffix='_df2') #creates a single shared fitres file for use later
     except NameError:
         print("For DIFF to work, you need to give me two files! You only gave one. Quitting...")
         quit()
 
 
 try:
-    if namedic[0] == namedic[1]:
+    if namedic[0] == namedic[1]: #This is for us to track if the two files are named identically. If so, will rename one.
         print("Your filenames are identical! I'm going to go up a level and use the directory name instead of the filename.")
         for n,l in enumerate(FILENAME): #Using n as an integer to track if we've got one or two files, and what to do.                    
             print("Renaming... ",l.split("/")[-1], "..." )                                                  
             try:
-                namedic[n] = l.split("/")[-2]
+                namedic[n] = l.split("/")[-2] #Switches to the directory above the file.
                 print("Renamed", l.split("/")[-1], " to ", l.split("/")[-2])
-            except IndexError:
+            except IndexError: #Unless there isn't one.
                 print(namedic[n], " is in your current directory. I won't rename this one.")
-
-        if namedic[0] == namedic[1]:
+        if namedic[0] == namedic[1]: #Double check that the renamed files are not identical. 
             print("Both the filenames and their directories are identical. This means that you either gave me the same file twice, or you need to change some file or directory names. Quitting..")
             quit()
 except KeyError: 
@@ -114,10 +113,10 @@ plotdic = {} #Used for tracking what to plot. For each file, we can accept two t
 #The first is a single variable, eg, c.
 #Or, we can accept c:x1. We'll split on :, and then save it to plotdic in order. 
 for n,i in enumerate(VARIABLE):
-    VAR = i.split(':')
-    while('' in VAR): #Strip empty strings
+    VAR = i.split(':') #Splits the string on :, giving us one or two variables
+    while('' in VAR): #Strip empty strings, just in case 
         VAR.remove('')
-    plotdic[n] = VAR
+    plotdic[n] = VAR #assign to dictionary, which could probably just be a list 
 
 
 
@@ -130,16 +129,16 @@ for q in list(plotdic): #q in plotdic gives a list of strings of len = 1 or 2
 
 
 if (BOUNDS == 'loose') or (BOUNDS[0] == 'loose'): #checking to see if BOUNDS is default                   
-    if DIFF == True:
+    if DIFF == True: #Will just use 3std
         lower = -3*np.std(df1[VAR[0]].values)
         upper = 3*np.std(df1[VAR[0]].values)
         bins = np.linspace(lower, upper, 30)
     else:
-        try:
+        try: #try first assuming that there are two files
             lower = min(np.amin(df1[VAR[0]].values), np.amin(df2[VAR[0]].values))
             upper = max(np.amax(df1[VAR[0]].values), np.amax(df2[VAR[0]].values))
             bins = np.linspace(lower, upper, 30) 
-        except NameError:
+        except NameError: #if not then we use use the one. This was just easier conceptually for me
             lower = np.amin(df1[VAR[0]].values)
             upper = np.amax(df1[VAR[0]].values)
             bins = np.linspace(lower, upper, 30) #Will just use the max and min values for that parameter and 30 bins.       
@@ -155,10 +154,10 @@ else:
 for n, q in enumerate(list(plotdic)): #n keeps track of what cycle we're on, while q will be used to define VAR
     VAR = plotdic[q] #This will either be length one, or two. Length one is a single parameter. Length two will be used to plot things against each other instead of a hist.
     if len(VAR) == 1: #If this is true, we're looking at a single parameter. That means we need to plot a histogram. 
-        print('The upper and lower bounds are:', np.around(bins[0],4), 'and', np.around(bins[-1],4), 'respectively')
+        print('The upper and lower bounds are:', np.around(bins[0],4), 'and', np.around(bins[-1],4), 'respectively') 
         plt.figure()
-        db = binned_statistic(df1[VAR[0]].values, df1[VAR[0]].values, bins=bins, statistic='count')[0]
-        errl,erru = poisson_interval(db)
+        db = binned_statistic(df1[VAR[0]].values, df1[VAR[0]].values, bins=bins, statistic='count')[0] #Get counts 
+        errl,erru = poisson_interval(db) #And error for those counts 
         plt.errorbar((bins[1:] + bins[:-1])/2., db, label=namedic[0], yerr=[db-errl, erru-db], fmt='o')
         print("The Mean value for ", namedic[0], " is:", np.mean(df1[VAR[0]].values))                        
         print("The Median value for ", namedic[0], " is:", np.median(df1[VAR[0]].values))            
