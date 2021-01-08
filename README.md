@@ -11,7 +11,11 @@ An example command is as follows:
 
 @@VARIABLE Can either be a single valid FITRES parameter, or a colon delimited combination, eg, x:y. If it is a colon delimited combination, the program will read it as x:y and plot a 2d graph of the relevant variables. 2D graphs include an average value. Otherwise, it will plot a histogram.
 
-@@BOUNDS default is "loose", and will use the minimum and maximum values of VARIABLE, with 30 bins. If you include two files, default will use the minimum and maximum between the two files, not just one.
+@@BOUNDS default is "loose", and will use the minimum and maximum values of VARIABLE, with 30 bins. If you include two files, default will use the minimum and maximum between the two files, not just one. This can be left unspecified for the "loose" bound option.
+
+@@SAVE Provide a filename or custom filepath to save the output to. This can be left unspecified - by default it will not save your plot.
+
+@@DIFF Currently disabled. A boolean value. If True, it will show the difference in the given variable for the same CID. Currently under construction. This can be left unspecified and will default to False.
 
 Can also be implemented as a space delimited list of colon entries formatted as min:max:binsize. 
 For a histogram, "min:max:binsize" will suffice. 
