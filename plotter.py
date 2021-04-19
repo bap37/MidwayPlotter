@@ -11,6 +11,27 @@ parser=argparse.ArgumentParser(formatter_class=RawTextHelpFormatter, prefix_char
 from scipy.stats import binned_statistic
 import distutils.util 
 
+"""
+How do I use this plotter? Well, first you're going to need to present one or two FITRES/M0DIF/HOSTLIB files! No more than that I'm afraid.
+
+Then you'll need to specify what you want to plot, eg, @@VARIABLE. For this, you can do a 1D histogram or a 2D function. If you're doing a 2D function, the input will be split by ':'. 
+So for instance, plotting zHD vs mB  will be done by setting '@@VARIABLE zHD:mB'! Very exciting.
+
+Then you can also set custom boundaries and bins! This is done by giving '@@BOUNDS minimum:maximum:binsize'. For 2D plots you'll have to provide both x and y boundaries, though the binsize will not be used for the y values. Still need to give it though. 
+
+You can save your figure using @@SAVE.
+
+If you want to compare and contrast values for the same CID, you enable the @@DIFF option! 
+Finally, ALPHA exists so that you can have the option to only show the averages. I used to have to comment out lines to do this.
+
+Anyways, an example of the usage is like so:
+
+plotter.py @@FITRES $FILEPATH/FILE1 FILE2 @@VARIABLE zHD:c
+
+That'll plot z vs c for your two files!
+
+"""
+
 parser.add_argument('@@FITRES', help='The location of your FITRES file that you need plotted. You can give a space delineated list of two different FITRES files. Please make sure they are named differently, as their names (not full filepath) will be used for labeling.', nargs="+")
 parser.add_argument('@@VARIABLE', help="""The variable you want to plot. Needs to be a valid FITRES parameter. \n
 If you give only one value, this will generate a histogram. If you give two colon delimited values, such as zCMB:mB it will plot zCMB (x) vs mB (y). Please note that for the histogram, counts will be normalised to the first file given.""", nargs="+")
@@ -22,6 +43,7 @@ parser.add_argument('@@SAVE', default='None', help=
 """Filename to save image under. Can give a custom filepath, otherwise saves in the working directory. Default does not save images.""")
 parser.add_argument('@@DIFF', default=False, type=bool, help=
 """Plot the difference in the y-axis between two files. Default is False.""")
+parser.add_argument('@@ALPHA', default=0.3, type=float, help='Alpha value for plotting. Set to 0 if you just want to see averages. If you set ALPHA = 0 and DIFF = True, you can compare the average difference between the two files even if there are no overlapping CIDS.')
 
 args = parser.parse_args()
 VARIABLE = args.VARIABLE
@@ -29,6 +51,7 @@ FILENAME = args.FITRES
 BOUNDS = args.BOUNDS
 FORMAT = args.SAVE
 DIFF = args.DIFF
+ALPHA = args.ALPHA
 
 
 def NAndR(filename):
@@ -38,7 +61,7 @@ def NAndR(filename):
                 line = line.replace(',',' ')   
                 line = line.replace('\n','')    
                 Names = line.split()     
-            elif line.startswith('SN'):     
+            elif (line.startswith('SN')) or (line.startswith('ROW')) or (line.startswith('GAL:')):     
                 Startrow = i 
                 break   
     return Names, Startrow  
@@ -86,11 +109,18 @@ for n,l in enumerate(FILENAME): #Using n as an integer to track if we've got one
         print("Done loading!")
 
 if DIFF == True: #Thank you to Charlie for this part to ensure that join has only shared CIDs in it! 
-    try:
-        join = df1.join(df2.set_index('CID'), on='CID', how='inner', lsuffix='_df1', rsuffix='_df2') #creates a single shared fitres file for use later
-    except NameError:
-        print("For DIFF to work, you need to give me two files! You only gave one. Quitting...")
-        quit()
+    if FILENAME[0].endswith('M0DIF'): 
+        pass
+    elif ALPHA == 0:
+        pass
+    else:
+        df1['CID'] = df1['CID'].astype(str)
+        df2['CID'] = df2['CID'].astype(str)
+        try:
+            join = df1.join(df2.set_index('CID'), on='CID', how='inner', lsuffix='_df1', rsuffix='_df2') #creates a single shared fitres file for use later
+        except NameError:
+            print("For DIFF to work, you need to give me two files! You only gave one. Quitting...")
+            quit()
 
 
 try:
@@ -181,15 +211,22 @@ for n, q in enumerate(list(plotdic)): #n keeps track of what cycle we're on, whi
             quit()
         plt.figure()
         if DIFF == True:
-            plt.scatter(join[VAR[0]+'_df1'].values, join[VAR[1]+'_df1'].values - join[VAR[1]+'_df2'].values, alpha=.3, label='Diff')
-            avgdiff = binned_statistic(join[VAR[0]+'_df1'].values, join[VAR[1]+'_df1'].values - join[VAR[1]+'_df2'].values, bins=bins, statistic='mean')[0]
-            plt.scatter((bins[1:] + bins[:-1])/2, avgdiff, label="Mean Difference", color='k')   
+            if (FILENAME[0].endswith('M0DIF')):
+                plt.scatter(df1[VAR[0]].values, df1[VAR[1]].values - df2[VAR[1]].values, alpha=ALPHA, label='Diff')
+            elif ALPHA == 0:
+                avgdiff1 = binned_statistic(df1[VAR[0]].values, df1[VAR[1]].values, bins=bins, statistic='mean')[0]
+                avgdiff2 = binned_statistic(df2[VAR[0]].values, df2[VAR[1]].values, bins=bins, statistic='mean')[0]
+                plt.scatter((bins[1:] + bins[:-1])/2, avgdiff1 - avgdiff2, label="Mean Difference", color='k')
+            else:
+                plt.scatter(join[VAR[0]+'_df1'].values, join[VAR[1]+'_df1'].values - join[VAR[1]+'_df2'].values, alpha=.3, label='Diff')
+                avgdiff = binned_statistic(join[VAR[0]+'_df1'].values, join[VAR[1]+'_df1'].values - join[VAR[1]+'_df2'].values, bins=bins, statistic='mean')[0]
+                plt.scatter((bins[1:] + bins[:-1])/2, avgdiff, label="Mean Difference", color='k')   
         else:
-            plt.scatter(df1[VAR[0]].values, df1[VAR[1]].values, alpha=.3, label=namedic[0]) #This plots the first file  
+            plt.scatter(df1[VAR[0]].values, df1[VAR[1]].values, alpha=ALPHA, label=namedic[0]) #This plots the first file  
             avg1 = binned_statistic(df1[VAR[0]].values, df1[VAR[1]].values, bins=bins, statistic='mean')[0]
             plt.scatter((bins[1:] + bins[:-1])/2, avg1, label=namedic[0]+" average", color='k')
             try: #Then we try to plot the second file. If it fails, then df2 is undefined, and we quit.    
-                plt.scatter(df2[VAR[0]].values, df2[VAR[1]].values, alpha=.3, label=namedic[1]) #This plots the first file 
+                plt.scatter(df2[VAR[0]].values, df2[VAR[1]].values, alpha=ALPHA, label=namedic[1]) #This plots the first file 
                 avg2 = binned_statistic(df2[VAR[0]].values, df2[VAR[1]].values, bins=bins, statistic='mean')[0]
                 plt.scatter((bins[1:] + bins[:-1])/2, avg2, label=namedic[1]+" average", color='red')
             except NameError:               
