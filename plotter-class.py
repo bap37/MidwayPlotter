@@ -67,7 +67,7 @@ ALPHA = args.ALPHA
 CUT = args.CUT
 NROWS = args.NROWS
 
-DIFF = DIFF.strip()
+if DIFF: DIFF = DIFF.strip()
 
 VARIABLE = ''.join([str(elem) for elem in VARIABLE])
 if CUT: CUT = ''.join([str(elem) for elem in CUT])
@@ -83,6 +83,21 @@ def NAndR(filename):
             elif (line.startswith('SN')) or (line.startswith('ROW')) or (line.startswith('GAL:')):     
                 Startrow = i 
                 break   
+    return Names, Startrow  
+
+
+def NAndRzip(filename):
+    import gzip
+    with gzip.open(filename) as fp:
+        for i, bline in enumerate(fp):
+            line = bline.decode("utf-8")
+            if line.startswith('VARNAMES:'):       
+                line = line.replace(',',' ')            
+                line = line.replace('\n','')         
+                Names = line.split()           
+            elif (line.startswith('SN')) or (line.startswith('ROW')) or (line.startswith('GAL:')):                
+                Startrow = i            
+                break       
     return Names, Startrow  
 
 def poisson_interval(k, alpha=0.32):
@@ -121,8 +136,9 @@ def plotter_func(dictionary, DIFF, plotdic, boundsdic, CUT, ALPHA):
             print('The upper and lower bounds are:', np.around(bins[0],4), 'and', np.around(bins[-1],4), 'respectively')    
             if n == 1:                              
                 sb = binned_statistic(k.x_plot_val, k.x_plot_val, bins=bins, statistic='count')[0] #Get counts                                
-                errl,erru = poisson_interval(np.sum(db)*sb/np.sum(sb))                                                      
-                plt.errorbar((bins[1:] + bins[:-1])/2., np.sum(db)*sb/np.sum(sb), yerr=[sb-errl, erru-sb], label=k.name.values[0], fmt='o')                    
+                errl,erru = poisson_interval(np.sum(db)*sb/np.sum(sb)) 
+                sb = np.sum(db)*sb/np.sum(sb)
+                plt.errorbar((bins[1:] + bins[:-1])/2., sb, yerr=[sb-errl, erru-sb], label=k.name.values[0], fmt='o')                    
             else:                                   
                 db = binned_statistic(k.x_plot_val, k.x_plot_val, bins=bins, statistic='count')[0] #Get counts                                
                 errl,erru = poisson_interval(db) #And error for those counts                                                
@@ -198,11 +214,14 @@ for l in (FILENAME):
     print("Loading ",l.split("/")[-1], "...") #Inform that we're loading the first file.
     try:
         Names1, StartRow1 = NAndR(l) #Get info on where to start reading the file
-    except FileNotFoundError or NameError:
-        print('Could not find the FITRES you specified!')
-        print("You were pointing to: ", FILENAME)
-        sys.stdout.flush() # "dad! dad! look what got caught in the snare!" "good work, timmy, its AttributeError for dinner tonight" -Ross
-        quit() #Quits if one or more files is missing
+    except (FileNotFoundError, NameError, UnicodeDecodeError):
+        if UnicodeDecodeError:
+            Names1, StartRow1 = NAndRzip(l)
+        else:
+            print('Could not find the FITRES you specified!')
+            print("You were pointing to: ", FILENAME)
+            sys.stdout.flush() # "dad! dad! look what got caught in the snare!" "good work, timmy, its AttributeError for dinner tonight" -Ross
+            quit() #Quits if one or more files is missing
     if NROWS != 0: df = pd.read_csv(l, header=None, skiprows=StartRow1,names=Names1, delim_whitespace=True, skip_blank_lines=True, error_bad_lines=False, comment='#', nrows=NROWS)
     else: df = pd.read_csv(l, header=None, skiprows=StartRow1,names=Names1, delim_whitespace=True, skip_blank_lines=True, error_bad_lines=False, comment='#')
     try:
