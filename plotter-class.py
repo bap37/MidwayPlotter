@@ -222,8 +222,8 @@ for l in (FILENAME):
             print("You were pointing to: ", FILENAME)
             sys.stdout.flush() # "dad! dad! look what got caught in the snare!" "good work, timmy, its AttributeError for dinner tonight" -Ross
             quit() #Quits if one or more files is missing
-    if NROWS != 0: df = pd.read_csv(l, header=None, skiprows=StartRow1,names=Names1, delim_whitespace=True, skip_blank_lines=True, error_bad_lines=False, comment='#', nrows=NROWS)
-    else: df = pd.read_csv(l, header=None, skiprows=StartRow1,names=Names1, delim_whitespace=True, skip_blank_lines=True, error_bad_lines=False, comment='#')
+    if NROWS != 0: df = pd.read_csv(l, header=None, skiprows=StartRow1,names=Names1, sep=r"\s+", skip_blank_lines=True, comment='#', nrows=NROWS)
+    else: df = pd.read_csv(l, header=None, skiprows=StartRow1,names=Names1, sep=r"\s+", skip_blank_lines=True,  comment='#')
     try:
         df['CID'] = df['CID'].astype(str)
     except KeyError:
